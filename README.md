@@ -23,39 +23,36 @@ $ mkdir -p /mnt/nfs
 $ sudo mount -t nfs4 <server-name>:/ /mnt/nfs`
 ```
 
-SYS_ADMIN
-NET_ADMIN
-
 ## Environment Variables
 
-#### `EXPORT_PATH`
+##### `EXPORT_PATH`
 Default: `/data/nfs`    
 The directory to export.
 
-#### `PSEUDO_PATH`
+##### `PSEUDO_PATH`
 Default: `/`    
 NFS4 pseudo path.
 
-#### `EXPORT_ID`
+##### `EXPORT_ID`
 Default: `0`    
 An identifier for the export, between 0 and 65535.
 
-#### `PROTOCOLS`
+##### `PROTOCOLS`
 Default: `4`    
 The NFS protocols allowed. One or multiple (comma-seperated) of 3, 4, and 9P.
 
-#### `TRANSPORTS`
+##### `TRANSPORTS`
 Default: `UDP, TCP`    
 The transport protocols allowed. One or multiple (comma-seperated) of UDP, TCP, and RDMA.
 
-#### `SQUASH_MODE`
+##### `SQUASH_MODE`
 Default: `No_Root_Squash`    
 What kind of user id squashing is performed. No_Root_Squash, Root_Id_Squash, Root_Squash, All_Squash.
 
-#### `GRACELESS`
+##### `GRACELESS`
 Default: `true`    
 Whether to disable the NFSv4 grace period.
 
-#### `VERBOSITY`
+##### `VERBOSITY`
 Default: `NIV_EVENT`    
 Logging verbosity. One of NIV_DEBUG, NIV_EVENT, NIV_WARN.
