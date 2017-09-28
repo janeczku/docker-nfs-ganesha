@@ -1,27 +1,33 @@
-FROM ubuntu:14.04
-MAINTAINER Jan Bruder <jan@rancher.com>
+FROM centos:7
+MAINTAINER jan@rancher.com
 
-# install prerequisites
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    apt-get install -y wget unzip uuid-runtime python-setuptools udev runit sharutils nfs-common dbus && \
-    # install ganesha
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3FE869A9 && \
-    echo "deb http://ppa.launchpad.net/gluster/nfs-ganesha/ubuntu trusty main" | tee /etc/apt/sources.list.d/nfs-ganesha.list && \
-    echo "deb http://ppa.launchpad.net/gluster/libntirpc/ubuntu trusty main" | tee /etc/apt/sources.list.d/libntirpc.list && \
-    apt-get update && apt-get install -y --force-yes nfs-ganesha nfs-ganesha-fsal && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install dependencies
+RUN yum install -y epel-release.noarch centos-release-gluster37.noarch && \
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7 && \
+    rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Storage && \
+    yum -y install \
+    nfs-ganesha nfs-ganesha-xfs nfs-ganesha-vfs \
+    nfs-utils rpcbind dbus && \
+    # Clean cache
+    yum -y clean all
 
-# Prepare folders
-RUN mkdir -p /run/rpcbind && touch /run/rpcbind/rpcbind.xdr && touch /run/rpcbind/portmap.xdr && chmod 777 /run/rpcbind/*  && \
-    mkdir -p /export && \
-    mkdir -p /var/run/dbus && chown messagebus:messagebus /var/run/dbus
+# Add Tini
+ENV TINI_VERSION v0.16.1
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini.asc /tini.asc
+RUN set -x \
+    && export GNUPGHOME="$(mktemp -d)" \
+    && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7 \
+    && gpg --verify /tini.asc \
+    && rm -rf "$GNUPGHOME" /tini.asc \
+    && chmod +x /tini
 
-# Add startup script and ganesha config
-ADD start.sh /
-ADD ganesha.conf /etc/ganesha/ganesha.conf
+COPY rootfs /
 
-# NFS ports and portmapper
-EXPOSE 2049 38465-38467 662 111/udp 111
+VOLUME ["/data/nfs"]
 
-# Start Ganesha NFS daemon by default
-CMD ["/start.sh"]
+# NFS ports
+EXPOSE 111 111/udp 662 2049 38465-38467
+
+ENTRYPOINT ["/tini", "--"]
+CMD ["/opt/start_nfs.sh"]

@@ -1,0 +1,17 @@
+# Ignore all files and folders in the root
+/*
+
+# Allow files/folders using a negation pattern
+# To allow a subfolder and all files/folders below (e.g. foo/bar/baz):
+# !foo
+# foo/*
+# !foo/bar/baz/
+
+!.gitignore
+!*.sh
+!*.md
+
+!rootfs/
+
+# Ignore these files in any folders
+**/.DS_Store
